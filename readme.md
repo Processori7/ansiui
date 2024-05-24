@@ -16,6 +16,7 @@
 5. Запустить файл: 
 ```python ansi.py```
 # Сборка
-```pyinstaller ansi.spec
+```
+pyinstaller ansi.spec
 ```
 Далее можно упаковать Enigma Virtual Box.
