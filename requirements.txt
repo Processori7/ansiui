@@ -1,0 +1,6 @@
+freeGPT
+asyncio
+ai4free
+eel
+git+https://github.com/bottlepy/bottle.git
+pillow

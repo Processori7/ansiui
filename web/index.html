@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ansi</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+        }
+        .chat-container {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 20px;
+			border: 1px solid #444;
+			border-radius: 10px;
+			resize: both;
+			overflow: auto;
+		}
+        .chat-window {
+			background-color: #1e1e1e;
+			border: 1px solid #333;
+			border-radius: 5px;
+			padding: 10px;
+			margin-bottom: 10px;
+			overflow-y: auto;
+			height: 400px; /* Увеличьте высоту до 400 пикселей */
+			resize: vertical;
+		}
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+			resize: vertical; /* Разрешить вертикальное растяжение */
+			min-height: 40px; /* Минимальная высота поля ввода */
+        }
+        .input-container textarea {
+			flex-grow: 1;
+			padding: 10px;
+			border: 1px solid #444;
+			border-radius: 5px;
+			background-color: #1e1e1e;
+			color: #fff;
+			resize: vertical;
+			min-height: 40px;
+		}
+        .input-container button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+        .input-container button:hover {
+            background-color: #555;
+        }
+        .model-buttons {
+			display: flex;
+			flex-direction: column;
+			margin-left: 20px;
+			justify-content: center; /* Выравнивание кнопок по вертикали */
+		}
+        .model-buttons button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .model-buttons button:hover {
+            background-color: #555;
+        }
+        .chat-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат с ИИ</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <style>
+        /* Остальной CSS-код остается без изменений */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-window" id="chat-window-6">
+                <div class="chat-title">gpt-3.5-turbo</div>
+            </div>
+            <div class="input-container">
+                <textarea id="user-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                <button onclick="sendMessage()">Отправить</button>
+            </div>
+        </div>
+        <div class="model-buttons">
+            <button onclick="toggleChatWindow('chat-window-1', 'KoboldAI')">KoboldAI</button>
+            <button onclick="toggleChatWindow('chat-window-2', 'Blackbox')">Blackbox</button>
+            <button onclick="toggleChatWindow('chat-window-3', 'ThinkAnyAI')">ThinkAnyAI</button>
+            <button onclick="toggleChatWindow('chat-window-4', 'Phind')">Phind</button>
+            <button onclick="toggleChatWindow('chat-window-5', 'Deepinfra')">Deepinfra</button>
+            <button onclick="toggleChatWindow('chat-window-6', 'gpt-3.5-turbo')">gpt-3.5-turbo</button>
+        </div>
+    </div>
+    <script>
+        let chatCount = 1;
+
+		let isSendingMessage = false;
+
+        async function sendMessage() {
+            if (isSendingMessage) return; // Если сообщение уже отправляется, выходим из функции
+
+            const input = document.getElementById('user-input');
+            const message = input.value;
+            if (message.trim() !== '') {
+                isSendingMessage = true; // Устанавливаем флаг, что сообщение отправляется
+
+                // Показываем элемент ожидания
+                const waitingElement = document.createElement('div');
+                waitingElement.classList.add('waiting-element');
+                waitingElement.textContent = 'Пожалуйста, подождите...';
+                document.querySelector('.chat-container').appendChild(waitingElement);
+
+                // Блокируем ввод
+                input.disabled = true;
+
+                // Получаем все открытые окна чата
+                const chatWindows = document.querySelectorAll('.chat-window');
+
+                // Отправляем сообщение во все открытые окна
+                for (const chatWindow of chatWindows) {
+                    const chatWindowId = chatWindow.id;
+                    const chatWindowTitle = chatWindow.querySelector('.chat-title').textContent;
+
+                    // Вызываем соответствующую функцию из Python-кода
+                    let response;
+                    switch (chatWindowTitle) {
+                        case 'KoboldAI':
+                            response = await eel.communicate_with_KoboldAI(message)();
+                            break;
+                        case 'Blackbox':
+                            response = await eel.communicate_with_BlackboxAI(message)();
+                            break;
+                        case 'ThinkAnyAI':
+                            response = await eel.communicate_with_ThinkAnyAI(message)();
+                            break;
+                        case 'Phind':
+                            response = await eel.communicate_with_Phind(message)();
+                            break;
+                        case 'Deepinfra':
+                            response = await eel.communicate_with_DeepInfra(message)();
+                            break;
+                        case 'gpt-3.5-turbo':
+                        default:
+                            response = await eel.communicate_with_model(message)();
+                            break;
+                    }
+
+                    const newMessage = document.createElement('p');
+                    newMessage.textContent = `Пользователь: ${message}`;
+                    chatWindow.appendChild(newMessage);
+
+                    const responseMessage = document.createElement('p');
+                    responseMessage.textContent = `ИИ: ${response}`;
+                    chatWindow.appendChild(responseMessage);
+                }
+
+                // Удаляем элемент ожидания и разблокируем ввод
+                waitingElement.remove();
+                input.disabled = false;
+
+                input.value = '';
+                input.style.height = 'auto'; // Сбрасываем высоту поля ввода
+
+                isSendingMessage = false; // Сбрасываем флаг, что сообщение отправлено
+            }
+        }
+
+        document.getElementById('user-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.getElementById('user-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+       let openedChatWindows = [];
+
+        function toggleChatWindow(id, title) {
+            const chatWindow = document.getElementById(id);
+            if (chatWindow) {
+                chatWindow.remove();
+                openedChatWindows = openedChatWindows.filter(window => window.id !== id);
+            } else {
+                const newChatWindow = document.createElement('div');
+                newChatWindow.classList.add('chat-window');
+                newChatWindow.id = id;
+                const newChatTitle = document.createElement('div');
+                newChatTitle.classList.add('chat-title');
+                newChatTitle.textContent = title;
+                newChatWindow.appendChild(newChatTitle);
+                document.querySelector('.chat-container').insertBefore(newChatWindow, document.querySelector('.input-container'));
+                openedChatWindows.push(newChatWindow);
+            }
+        }
+    </script>
+</body>
+</html>
