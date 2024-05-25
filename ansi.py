@@ -1,6 +1,4 @@
 import eel
-import os
-import configparser
 from ai4free import KOBOLDAI, BLACKBOXAI, ThinkAnyAI, PhindSearch, DeepInfra
 from freeGPT import Client
 
