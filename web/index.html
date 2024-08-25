@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат с ИИ</title>
+    <script type="text/javascript" src="/eel.js"></script>
     <title>Ansi</title>
     <style>
         body {
@@ -87,39 +89,19 @@
         }
     </style>
 </head>
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чат с ИИ</title>
-    <script type="text/javascript" src="/eel.js"></script>
-    <style>
-        /* Остальной CSS-код остается без изменений */
-    </style>
-</head>
 <body>
     <div class="container">
         <div class="chat-container">
-            <div class="chat-window" id="chat-window-3">
-                <div class="chat-title">Claude-3-hiku</div>
-            </div>
             <div class="input-container">
-                <textarea id="user-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                <textarea id="user-input" lang="ru" spellcheck="true" placeholder="Введите сообщение..." rows="1"></textarea>
                 <button onclick="sendMessage()">Отправить</button>
             </div>
         </div>
         <div class="model-buttons">
-            <button onclick="toggleChatWindow('chat-window-1', 'KoboldAI LLM')">KoboldAI</button>
-            <button onclick="toggleChatWindow('chat-window-2', 'Blackbox AI LLM')">Blackbox</button>
-            <button onclick="toggleChatWindow('chat-window-3', 'Claude-3-haiku')">ThinkAnyAI</button>
-            <button onclick="toggleChatWindow('chat-window-4', 'Phind AI LLM')">Phind</button>
-            <button onclick="toggleChatWindow('chat-window-5', 'Meta-Llama-3-70B-Instruct')">Deepinfra</button>
-            <button onclick="toggleChatWindow('chat-window-6', 'Gpt-3.5-turbo')">Chat9</button>
-            <div>
-                <input type="checkbox" id="always-russian" name="always-russian">
-                <label for="always-russian">Отвечать всегда на русском</label>
-            </div>
+            <button onclick="toggleChatWindow('chat-window-1', 'gpt-4o-mini')">gpt-4o-mini</button>
+            <button onclick="toggleChatWindow('chat-window-2', 'claude-3-haiku')">claude-3-haiku</button>
+            <button onclick="toggleChatWindow('chat-window-3', 'llama-3-70b')">llama-3.1-70b</button>
+            <button onclick="toggleChatWindow('chat-window-4', 'mixtral-8x7b')">mixtral-8x7b</button>
         </div>
     </div>
     <script>
@@ -128,13 +110,6 @@
 
         let chatCount = 1;
         let isSendingMessage = false;
-        let alwaysRussian = false;
-
-          // Добавлен обработчик события для чекбокса
-        document.getElementById('always-russian').addEventListener('change', function() {
-            alwaysRussian = this.checked;
-        });
-
 
         function restoreOpenedChatWindows() {
             const savedWindows = JSON.parse(localStorage.getItem('openedChatWindows'));
@@ -152,70 +127,60 @@
         }
 
         async function sendMessage() {
-             if (isSendingMessage) return;
+    if (isSendingMessage) return;
 
-            const input = document.getElementById('user-input');
-            let message = input.value;
-            if (alwaysRussian) {
-                message += " отвечай на русском языке";
+    const input = document.getElementById('user-input');
+    let message = input.value;
+    if (message.trim() !== '') {
+        isSendingMessage = true;
+
+        const waitingElement = document.createElement('div');
+        waitingElement.classList.add('waiting-element');
+        waitingElement.textContent = 'Пожалуйста, подождите...';
+        document.querySelector('.chat-container').appendChild(waitingElement);
+
+        input.disabled = true;
+
+        const chatWindows = document.querySelectorAll('.chat-window');
+
+        for (const chatWindow of chatWindows) {
+            const chatWindowId = chatWindow.id;
+            const chatWindowTitle = chatWindow.querySelector('.chat-title').textContent;
+
+            let response;
+            switch (chatWindowTitle) {
+                case 'gpt-4o-mini':
+                    response = await eel.communicate_with_DDG(message, "gpt-4o-mini")();
+                    break;
+                case 'claude-3-haiku':
+                    response = await eel.communicate_with_DDG(message, "claude-3-haiku")();
+                    break;
+                case 'llama-3-70b':
+                    response = await eel.communicate_with_DDG(message, "llama-3-70b")();
+                    break;
+                case 'mixtral-8x7b':
+                    response = await eel.communicate_with_DDG(message, "mixtral-8x7b")();
+                    break;
             }
-            if (message.trim() !== '') {
-                isSendingMessage = true;
 
-                const waitingElement = document.createElement('div');
-                waitingElement.classList.add('waiting-element');
-                waitingElement.textContent = 'Пожалуйста, подождите...';
-                document.querySelector('.chat-container').appendChild(waitingElement);
+            const newMessage = document.createElement('p');
+            newMessage.textContent = `Пользователь: ${message}`;
+            chatWindow.appendChild(newMessage);
 
-                input.disabled = true;
-
-                const chatWindows = document.querySelectorAll('.chat-window');
-
-                for (const chatWindow of chatWindows) {
-                    const chatWindowId = chatWindow.id;
-                    const chatWindowTitle = chatWindow.querySelector('.chat-title').textContent;
-
-                    let response;
-                    switch (chatWindowTitle) {
-                        case 'KoboldAI':
-                            response = await eel.communicate_with_KoboldAI(message)();
-                            break;
-                        case 'Blackbox':
-                            response = await eel.communicate_with_BlackboxAI(message)();
-                            break;
-                        case 'ThinkAnyAI':
-                            response = await eel.communicate_with_ThinkAnyAI(message)();
-                            break;
-                        case 'Phind':
-                            response = await eel.communicate_with_Phind(message)();
-                            break;
-                        case 'Deepinfra':
-                            response = await eel.communicate_with_DeepInfra(message)();
-                            break;
-                        case 'gpt-3.5-turbo':
-                        default:
-                            response = await eel.communicate_with_model(message)();
-                            break;
-                    }
-
-                    const newMessage = document.createElement('p');
-                    newMessage.textContent = `Пользователь: ${message}`;
-                    chatWindow.appendChild(newMessage);
-
-                    const responseMessage = document.createElement('p');
-                    responseMessage.textContent = `ИИ: ${decodeURIComponent(escape(response))}`;
-                    chatWindow.appendChild(responseMessage);
-                }
-
-                waitingElement.remove();
-                input.disabled = false;
-
-                input.value = '';
-                input.style.height = 'auto';
-
-                isSendingMessage = false;
-            }
+            const responseMessage = document.createElement('p');
+            responseMessage.textContent = `ИИ: ${response}`; // Исправлено
+            chatWindow.appendChild(responseMessage);
         }
+
+        waitingElement.remove();
+        input.disabled = false;
+
+        input.value = '';
+        input.style.height = 'auto';
+
+        isSendingMessage = false;
+    }
+}
 
         document.getElementById('user-input').addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {

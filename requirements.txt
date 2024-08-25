@@ -1,6 +1,5 @@
-freeGPT
-asyncio
-ai4free
+webscout
 eel
-git+https://github.com/bottlepy/bottle.git
 pillow
+psutil
+huggingface_hub
